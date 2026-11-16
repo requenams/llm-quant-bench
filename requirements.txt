@@ -1,0 +1,8 @@
+torch
+transformers>=4.56
+accelerate
+bitsandbytes
+datasets
+numpy
+matplotlib
+tqdm
