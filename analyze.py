@@ -110,6 +110,30 @@ def plot(rows, out_dir):
         plt.close(fig)
 
 
+def plot_paired(rows, baseline, out_dir):
+    """Paired changes against the baseline, which is what actually tells real losses from noise."""
+    q = [r for r in rows if r["variant"] != baseline]
+    if not q:
+        return
+    names = [r["variant"] for r in q]
+    y = np.arange(len(q))[::-1]
+    fig, axes = plt.subplots(1, 2, figsize=(9, 0.8 * len(q) + 1.6), sharey=True)
+    for ax, key, scale, label in [(axes[0], "acc_diff", 100, "MMLU accuracy change (pp)"),
+                                  (axes[1], "ppl_change", 100, "Perplexity change (%)")]:
+        pts = np.array([r[key] for r in q]) * scale
+        err = [pts[:, 0] - pts[:, 1], pts[:, 2] - pts[:, 0]]
+        ax.errorbar(pts[:, 0], y, xerr=err, fmt="o", capsize=4)
+        ax.axvline(0, color="grey", lw=1, ls="--")
+        ax.set_xlabel(label)
+        ax.grid(alpha=0.3, axis="x")
+    axes[0].set_yticks(y)
+    axes[0].set_yticklabels(names)
+    fig.suptitle(f"Change against {baseline} (paired 95% CI)")
+    fig.tight_layout()
+    fig.savefig(Path(out_dir) / "paired_differences.png", dpi=150)
+    plt.close(fig)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--results", default="results")
@@ -123,6 +147,7 @@ def main():
     md = to_markdown(rows, args.baseline, results[args.baseline]["model"])
     (Path(args.results) / "summary.md").write_text(md + "\n")
     plot(rows, args.results)
+    plot_paired(rows, args.baseline, args.results)
     print(md)
 
 
