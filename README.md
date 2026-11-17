@@ -1,5 +1,7 @@
 # How much does quantization really cost?
 
+[![CI](https://github.com/requenams/llm-quant-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/requenams/llm-quant-bench/actions/workflows/ci.yml)
+
 A small, reproducible benchmark of post training quantization for an open LLM.
 It compares the same model in 16 bit, 8 bit and 4 bit precision and asks two questions:
 
@@ -66,6 +68,29 @@ python run_benchmark.py --variant mo_int4_awq
 Default model: `Qwen/Qwen2.5-1.5B` (change it with `--model`). Each run saves a JSON
 file with the raw, per item results in `results/`, and `analyze.py` writes
 `results/summary.md` plus two plots: accuracy versus memory and accuracy versus speed.
+
+## Experiment tracking (MLflow)
+
+Every run can be tracked with MLflow, with its configuration as parameters, the headline
+numbers as metrics and the raw per item results as an artifact.
+
+```bash
+pip install mlflow
+python run_benchmark.py --variant nf4 --mlflow      # track a new run
+python log_to_mlflow.py --results results           # or log runs made on Colab/Kaggle
+mlflow ui --backend-store-uri sqlite:///mlflow.db   # open http://127.0.0.1:5000
+```
+
+## Tests and CI
+
+The statistics and the analysis are covered by unit tests, and GitHub Actions runs them on
+every push, rebuilds the analysis from the committed results and stores the table and plots
+as a build artifact. The GPU benchmark itself is not run in CI.
+
+```bash
+pip install -r requirements-dev.txt
+pytest -q
+```
 
 ## Results
 

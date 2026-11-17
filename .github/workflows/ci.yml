@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Run tests
+        run: pytest -q
+      - name: Rebuild the analysis from the committed results
+        run: python analyze.py --baseline fp16 --results results
+      - name: Upload summary and plots
+        uses: actions/upload-artifact@v4
+        with:
+          name: analysis
+          path: |
+            results/summary.md
+            results/*.png

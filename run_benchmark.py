@@ -30,6 +30,7 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--skip-speed", action="store_true")
     ap.add_argument("--out", default="results")
+    ap.add_argument("--mlflow", action="store_true", help="also log the run to MLflow")
     args = ap.parse_args()
 
     device = default_device()
@@ -73,6 +74,9 @@ def main():
     path = out_dir / f"{args.variant}.json"
     path.write_text(json.dumps(res, indent=1))
     print(f"Saved {path}")
+    if args.mlflow:
+        from quantbench.tracking import log_result
+        print(f"  MLflow run {log_result(res, path)}")
     print(f"  footprint {res['footprint_gb']:.2f} GB | PPL {res['perplexity']['value']:.3f} | "
           f"MMLU {res['mmlu']['accuracy']:.3f}")
     if "speed" in res:
